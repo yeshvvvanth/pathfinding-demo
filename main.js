@@ -1,14 +1,13 @@
-
 var config = {
-    width: 1280,
-    height: 720,
+    width: 960,
+    height: 540,
     type: Phaser.AUTO,
-    parent: 'phaser-example',
+    parent: 'canvasHolder',
     scene: {
         create: create,
         update: update
     },
-    disableContextMenu:true
+    disableContextMenu:true,
 };
 
 var game = new Phaser.Game(config);
@@ -49,7 +48,7 @@ function Node (px,py) {
 
 function create ()
 {
-    game.canvas
+    //game.canvas
     graphics = this.add.graphics({ fillStyle: { color: 0xffffff} });
     graphics.lineStyle(4, 0xffdc42,1);
     // circle = new Phaser.Geom.Circle(250,250, 20);
