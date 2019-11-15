@@ -42,10 +42,11 @@ function Node (px,py) {
         start = tnode;
     }else if(nodes.length == 1){
         end = tnode;
+        end.cost = 0;
     }
     return tnode;
 }
-
+var adder;
 function create ()
 {
     //game.canvas
@@ -53,25 +54,24 @@ function create ()
     graphics.lineStyle(4, 0xffdc42,1);
     // circle = new Phaser.Geom.Circle(250,250, 20);
     // var line = new Phaser.Geom.Line()
+    adder = this.add;
+    
+    // starting nodes
+
+    createNode(150,120);
+    createNode(650,250)
+    createNode(325,80)
+    createNode(500,200)
+    createNode(300,300)
 
     repaint();
 
-    const adder = this.add;
     this.input.on('pointerdown',
     function (p) {
             if(p.rightButtonDown()) {
             
                 // console.log ('pointer down at '+p.x+','+p.y)
-                const newNode = Node(p.x,p.y)
-                newNode.text  = adder.text(
-                    p.x-radius*0.4, 
-                    p.y-radius*0.5,newNode.name,
-                    { fontSize: '24px', fill: '#f05f50',fontStyle:'bold'}
-                );
-                newNode.text.style.color= "#ff0000";
-                nodes.push( newNode );
-                computeNeibhours();
-                repaint();
+                createNode(p.x,p.y)
             }
             if(p.leftButtonDown()){
                 nodes.forEach( n => {
@@ -102,6 +102,20 @@ function create ()
             computeNeibhours();
         }
     } );
+}
+
+function createNode(px,py){
+   
+    const newNode = Node(px,py)
+    newNode.text  = adder.text(
+        px-radius*0.4, 
+        py-radius*0.5,newNode.name,
+        { fontSize: '24px', fill: '#f05f50',fontStyle:'bold'}
+    );
+    newNode.text.style.color= "#ff0000";
+    nodes.push( newNode );
+    computeNeibhours();
+    repaint();
 }
 
 function update ()
@@ -166,18 +180,6 @@ function sqDist(n1,n2) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 function computeNeibhours(){
     for ( let i = 0;i < nodes.length; i += 1) {
         const curr = nodes [i];
@@ -225,6 +227,9 @@ function computePath () {
 
         while(true){
             const top = activePool[0];
+            if(top)console.log('top = '+top.name);else console.log('top : '+top);
+            console.log(activePool)
+
             for(let i = 0;i < top.neibhours.length;i += 1){
                 const neibhour = top.neibhours[i];
                 const n = neibhour.node;
@@ -239,8 +244,11 @@ function computePath () {
             }
             completedPool.push(top);
             activePool.sort(leastCost);
-            if( activePool[0] == end) {break;}
-            activePool.splice(0,1);
+            if(activePool[0]!=end){
+                activePool.splice(0,1);
+            }else{
+                break;
+            }
         }
 
         curr = end;
