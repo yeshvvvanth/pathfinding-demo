@@ -11,7 +11,7 @@ var config = {
 };
 
 var game = new Phaser.Game(config);
-const maxNeibhours = 3;
+const maxNeibhours = 12;
 const range = 250;
 var graphics;
 // var circle;
