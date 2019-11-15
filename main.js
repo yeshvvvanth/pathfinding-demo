@@ -42,7 +42,6 @@ function Node (px,py) {
         start = tnode;
     }else if(nodes.length == 1){
         end = tnode;
-        end.cost = 0;
     }
     return tnode;
 }
@@ -144,7 +143,11 @@ function repaint () {
         for ( let j = 0;j < c.neibhours.length; j += 1) {
             const ne = c.neibhours[j].node;
             // console.log('----'+ne.name)
-            graphics.lineBetween(ne.x,ne.y,c.x,c.y);
+            // graphics.lineBetween(ne.x,ne.y,c.x,c.y);
+            dx =  (ne.x-c.x)*0.49;
+            dy =  (ne.y-c.y)*0.49;
+            graphics.lineBetween(c.x,c.y,c.x+dx,c.y+dy);
+
         }
     }
     renderPath();
@@ -182,16 +185,20 @@ function sqDist(n1,n2) {
 
 function computeNeibhours(){
     for ( let i = 0;i < nodes.length; i += 1) {
+        nodes[i].neibhours.splice(0)
+    }
+    for ( let i = 0;i < nodes.length; i += 1) {
         const curr = nodes [i];
-        curr.neibhours.splice(0);
         var closest = nodes.map( n => {return {node:n,dist:sqDist(n,curr) }} )
                         .sort( (a,b) => a.dist-b.dist );
         const maxN = Math.min(closest.length,maxNeibhours+1);
         for( let a = 1;a < maxN; a++) {
             const cl = closest[a];
-            if(cl.dist < range * range || curr.neibhours.length == 0) {
+            let lonely  = curr.neibhours.length == 0;
+            if(cl.dist < range * range || lonely) {
+                // if(lonely){ console.log(curr);console.log(cl.node);}
                 curr.neibhours.push(cl);
-                
+                if(lonely){ cl.node.neibhours.push({node:curr,dist:sqDist(curr,cl.node)});}
             }
         }
     }
@@ -229,6 +236,7 @@ function computePath () {
             const top = activePool[0];
             if(top)console.log('top = '+top.name);else console.log('top : '+top);
             console.log(activePool)
+            if(top)console.log(top.neibhours)
 
             for(let i = 0;i < top.neibhours.length;i += 1){
                 const neibhour = top.neibhours[i];
