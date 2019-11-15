@@ -70,7 +70,9 @@ function create ()
             if(p.rightButtonDown()) {
             
                 // console.log ('pointer down at '+p.x+','+p.y)
-                createNode(p.x,p.y)
+                path.splice(0);
+                createNode(p.x,p.y);
+                repaint();
             }
             if(p.leftButtonDown()){
                 nodes.forEach( n => {
@@ -98,6 +100,7 @@ function create ()
             dragged.x = p.x;
             dragged.y = p.y;
             repaint();
+            path.splice(0)
             computeNeibhours();
         }
     } );
@@ -192,14 +195,20 @@ function computeNeibhours(){
         var closest = nodes.map( n => {return {node:n,dist:sqDist(n,curr) }} )
                         .sort( (a,b) => a.dist-b.dist );
         const maxN = Math.min(closest.length,maxNeibhours+1);
+        let cloMax = null;
+        // start from 1 cuz closest node to a node is itself
         for( let a = 1;a < maxN; a++) {
             const cl = closest[a];
-            let lonely  = curr.neibhours.length == 0;
-            if(cl.dist < range * range || lonely) {
-                // if(lonely){ console.log(curr);console.log(cl.node);}
+            if(!cloMax || cloMax.dist>cl.dist){cloMax = cl;}
+            if(cl.dist < range * range) {
                 curr.neibhours.push(cl);
-                if(lonely){ cl.node.neibhours.push({node:curr,dist:sqDist(curr,cl.node)});}
             }
+        }
+        let lonely  = curr.neibhours.length == 0 && cloMax!=null;
+        if(lonely){ 
+            // if(lonely){ console.log(curr);console.log(cl.node);}
+            curr.neibhours.push(cloMax);
+            cloMax.node.neibhours.push({node:curr,dist:sqDist(curr,cloMax.node)});
         }
     }
 }
@@ -219,6 +228,12 @@ function renderPath(){
 const huge =99999999;
 
 function computePath () {
+    if(hasPath()){
+        console.log('has path!! :)')
+    }else{
+        alert('there is no possible path !!!')
+        return;
+    }
     const completedPool = []
     const activePool = []
     console.log('computed path')
@@ -275,3 +290,34 @@ function leastCost(a,b){
     return a.cost-b.cost;
 }
 
+function hasPath(){
+
+    let doneList = []
+    let tries = 1000;
+    let foundEnd =false;
+
+    function scanNodes(snode){
+        // console.log('++++++++++')
+        // if(snode)console.log("((((((((((((((((       "+snode.name+"       )))))))))))))")
+        // else console.log(snode);
+        // console.log('--------------------------')
+
+        doneList.push(snode.name);
+        if(snode == end ){/*alert('found path');*/foundEnd = true;;return true;}
+        tries += -1;if(tries<0){return false;}
+  
+        // console.log('children = '+snode.neibhours.length)
+        // console.log(snode.neibhours)
+        for(let i=0;i<snode.neibhours.length;i += 1){
+            let n = snode.neibhours[i].node;
+            if(!doneList.includes(n.name)){
+                // console.log(doneList)
+                // if(n)console.log(n.name+" >>>>>");                
+                scanNodes(n);
+            }
+        }        
+    }
+
+    scanNodes(start);
+    return foundEnd;
+}
