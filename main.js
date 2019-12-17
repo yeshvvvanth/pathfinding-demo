@@ -67,12 +67,10 @@ function create ()
 
     this.input.on('pointerdown',
     function (p) {
-            if(p.rightButtonDown()) {
+            if(p.middleButtonDown()) {
             
                 // console.log ('pointer down at '+p.x+','+p.y)
-                path.splice(0);
-                createNode(p.x,p.y);
-                repaint();
+               addNewNode(p.x,p.y);
             }
             if(p.leftButtonDown()){
                 nodes.forEach( n => {
@@ -83,9 +81,8 @@ function create ()
                     }
                 });
             }
-            if(p.middleButtonDown()) { 
-                computePath();
-                repaint();
+            if(p.rightButtonDown()) { 
+                showPath();
             }
         }
     )
@@ -109,12 +106,16 @@ function create ()
 function createNode(px,py){
    
     const newNode = Node(px,py)
+
+	let textColor = (newNode == start||newNode==end)?'#ffffff':'#f05f50';
+	//textColor = (newNode == start) ? '#ffffff':textColor;
     newNode.text  = adder.text(
         px-radius*0.4, 
         py-radius*0.5,newNode.name,
-        { fontSize: '24px', fill: '#f05f50',fontStyle:'bold'}
+        { fontSize: '24px', fill: textColor,fontStyle:'bold'}
     );
-    newNode.text.style.color= "#ff0000";
+    //newNode.text.style.color= "#ff0000";
+
     nodes.push( newNode );
     computeNeibhours();
     repaint();
@@ -134,7 +135,7 @@ function update ()
 function repaint () {
     graphics.clear();
     graphics.fillStyle(0xffffff);
-    graphics.lineStyle(4, 0xaaaaaa,1);
+    graphics.lineStyle(4, 0x666666,1);
     // graphics.lineBetween(100, 100, 600, 500);
     
     for ( let i = 0;i < nodes.length; i += 1) {
@@ -156,7 +157,7 @@ function repaint () {
     renderPath();
     for ( let i = 0;i < nodes.length; i += 1) {
         let c = nodes[i];
-        if(start == c){graphics.fillStyle(0x00ff00);}
+        if(start == c){graphics.fillStyle(0x66dd00);}
         else if(end == c){graphics.fillStyle(0xff0000);}
         else {graphics.fillStyle(0xffffff);}
         graphics.fillCircle(c.x,c.y,radius);
@@ -290,6 +291,17 @@ function leastCost(a,b){
     return a.cost-b.cost;
 }
 
+function showPath(){
+	computePath();
+	repaint();
+}
+
+function addNewNode(px=500,py=500){
+	if(nodes.length>25){return;}
+ 	path.splice(0);
+	createNode(px,py);
+	repaint();
+}
 function hasPath(){
 
     let doneList = []
