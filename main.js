@@ -13,12 +13,24 @@ var game = new Phaser.Game(config);
 const nodes = [];
 const path = [];
 const maxNeibhours = 12;
-const range = 16; // Maximum distance between two nodes to be considered neibhours
+const range = 256; // Maximum distance between two nodes to be considered neibhours
 var graphics;   // Phaser graphics object
 var dragged = null; // the node that is being dragged by left clicking
 var radius = 20;
 var odometer = -1; // the number of times new node is created
-
+const startingNodePositions = [
+            150,120,
+            693,324,
+            325,80,
+            458,161,
+            247,251,
+            423,324,
+            577,103,
+            273,393,
+            526,309,
+            149,299,
+            497,449
+]
 
 var startNode = null;   // starting node
 var endNode = null;     // ending node
@@ -50,13 +62,10 @@ function create ()
     adder = this.add;
     
     // default nodes for starting state 
-
-    createNode(150,120);
-    createNode(650,250)
-    createNode(325,80)
-    createNode(500,200)
-    createNode(300,300)
-
+    let snp = startingNodePositions;
+    for (let i = 0;i < snp.length/2;i +=1){
+        createNode(snp[2*i],snp[2*i+1]);
+    }
     repaint();
 
     this.input.on('pointerdown',
@@ -158,7 +167,6 @@ function uniqueName(odo) {
 }
 
 function Dist(n1,n2) {
-    // square distance
     return Math.sqrt((n2.x-n1.x)**2+(n2.y-n1.y)**2);
 }
 
@@ -172,23 +180,17 @@ function computeNeibhours(){
     }
     for ( let i = 0;i < nodes.length; i += 1) {
         const curr = nodes [i];
-        var nodesByDistance = nodes.map( n => {return {node:n,cost:Dist(n,curr) }} )
+        // edges contain neibhour node reference and the cost to it.
+        var nodeEdges = nodes.map( n => {return {node:n,cost:Dist(n,curr) }} )
                         .sort( (a,b) => a.cost-b.cost );
-        const nodeCount = Math.min(nodesByDistance.length,maxNeibhours+1);
-        let closest = null;
+        const edgeCount = Math.min(nodeEdges.length,maxNeibhours+1);
         // start from 1 cuz closest node to a node is itself
-        for( let a = 1;a < nodeCount; a++) {
-            const cl = nodesByDistance[a];
-            if(!closest || closest.cost>cl.cost){closest = cl;}
-            if(cl.cost < range * range) {
-                curr.neibhours.push(cl);
+        for( let j = 1;j < edgeCount; j++) {
+            const edge = nodeEdges[j];
+            if(edge.cost < range ) {
+                curr.neibhours.push(edge);
             }
-        }
-        let lonely  = curr.neibhours.length == 0 && closest!=null;
-        if(lonely){ 
-            curr.neibhours.push(closest);
-            closest.node.neibhours.push({node:curr,dist:Dist(curr,closest.node)});
-        }
+        }       
     }
 }
 
@@ -237,16 +239,13 @@ function computePath () {
                 const neibhour = top.neibhours[i];
                 const n = neibhour.node;
                 if(!completedPool.includes(n)){
-                    if(!activePool.includes(n)){activePool.push(n);console.log('pushed '+n.name)}
                     const costToTop = top.neibhours[i].cost;
                     const newCost = top.gcost + costToTop;
                     if( newCost < n.gcost){
-                        console.log('-------')
-                        console.log(n.gcost+' , '+top.gcost+", "+newCost);
+                        if(n.from==null){activePool.push(n);}
                         n.from = top;
                         n.gcost = newCost;
-                        console.log(top.name+' initiated '+n.name)
-
+                        console.log(top.name+' initiated '+n.name)                    
                     }
                 }
             }
